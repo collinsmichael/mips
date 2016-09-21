@@ -1,0 +1,93 @@
+//
+// Command.txt
+//
+// Listing of all available commands, their syntax, and parameters.
+//
+
+Exit
+    Syntax    : Exit
+    Operation : Terminates disassembly session.
+
+Quit
+    Syntax    : Quit
+    Operation : Terminates disassembly session.
+
+Command
+    Syntax    : Command(FilePath);
+    Operation : Executes a text file containing commands.
+    Parameter : FilePath - Specifies the file which contains the commands to be executed.
+
+Open
+    Syntax    : Open(FilePath);
+    Operation : Opens a binary file which is to be disassembled.
+    Parameter : FilePath - Specifies the path to the binary file.
+
+Link
+    Syntax    : Link(FilePath);
+    Operation : Loads symbol table from a symbol file.
+    Parameter : FilePath - Specifies the path to the symbol file which is to be linked to.
+
+Close
+    Syntax    : Close(FilePath);
+    Operation : Closes an open binary file.
+    Parameter : FilePath - Specifies the path to the binary file.
+
+Register
+    Syntax    : Register(NamingConvention);
+    Operation : Uses the specified register naming convention.
+    Parameter : NamingConvention - Can be any of the following:
+                0|Dasm    - Uses default naming convention.
+                1|pSX     - Uses pSX emulator register naming convention.
+                2|Comman  - Uses common register naming convention.
+                3|Numeric - Uses register numbers as the registers name.
+
+Print
+    Syntax    : Print(Arg); Print(Arg, ...);
+    Operation : Prints the argument list to the console. Arguments are seperated by ',' (comma's).
+    Parameter : Arg can be any of the following:
+                Integer numbers.
+                Single words.
+                Quoted text.
+
+Show
+    Syntax    : Show(Option);
+    Operation : Displays the option to be shown in the disassembly file.
+    Parameter : Option can be any of the following:
+                Address  - Displays the address column at the start of each line.
+                Opcode   - Displays the raw opcode next to the address column.
+                Label    - Displays the target of jumps and calls.
+                Mnemonic - Displays the disassembled instruction.
+                Ascii    - Hides the ascii representation of the opcode.
+
+Hide
+    Syntax    : Show(Option);
+    Operation : Does not displays the option to be shown in the disassembly file.
+    Parameter : Option can be any of the following:
+                Address  - Hides the address column at the start of each line.
+                Opcode   - Hides the raw opcode next to the address column.
+                Label    - Hides the target of jumps and calls.
+                Mnemonic - Hides the disassembled instruction.
+                Ascii    - Hides the ascii representation of the opcode.
+
+Debug
+    Syntax    : Debug(Module);
+    Operation : Displays a debug log of the operations performed by the specified internal module.
+    Parameter : Module can be any of the following:
+                Lexer       - Debugs the symbol table created by the lexical scanner.
+                Parser      - Debugs the interpretation carried out by the parser.
+                Disassmbler - Debugs the disassembly of the binary file.
+
+Address
+    Syntax    : Address(Value);
+    Operation : Overrides the address where the executable is loaded into memory.
+    Parameter : Value - The address the executable is to be loaded to in memory.
+
+Entry
+    Syntax    : Entry(Value);
+    Operation : Overrides the entry point for the executable.
+    Parameter : Value - The address to be used as the entry point to the executable.
+
+Dasm
+    Syntax    : Dasm(FilePath);
+    Operation : Disassembles the open binary file to the specified assembler listing.
+    Parameter : FilePath - Specifies the path to the assembler listing file.
