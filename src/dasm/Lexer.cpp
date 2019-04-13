@@ -4,12 +4,17 @@
 // Author(s) : Valendian
 //
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <memory.h>
 #include <malloc.h>
 #include "Lexer.h"
+
+#ifndef WIN32
+	#define _strcmpi  strcasecmp
+#endif
 
 const int NumKeyWords = 0x11;
 const char *KeyWord[NumKeyWords] = {

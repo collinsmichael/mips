@@ -1,41 +1,41 @@
 
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
-
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 #include "Main.h"
 #include "Dasm.h"
 
-extern uint32  Address;
-extern uint32  Entry;
-extern uint32  Naming;
-extern uint32 *Code;
-extern uint32 *Flag;
-extern uint32  Pointer;
+extern uint32_t  Address;
+extern uint32_t  Entry;
+extern uint32_t  Naming;
+extern uint32_t *Code;
+extern uint32_t *Flag;
+extern uint32_t  Pointer;
 extern binary  Binary;
 
-extern uint32  Pc;      // program counter register.
-extern uint32  Opcode;  // current instruction.
-extern uint32  Op;      // FC000000  6 bits (bit 0x1A to bit 0x1F)
-extern uint32  Rs;      // 03E00000  5 bits (bit 0x15 to bit 0x19)
-extern uint32  Format;  // 03E00000  5 bits (bit 0x15 to bit 0x19)
-extern uint32  Rt;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
-extern uint32  Ft;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
-extern uint32  Rd;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
-extern uint32  Fs;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
-extern uint32  Sa;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
-extern uint32  Fd;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
-extern uint32  Func;    // 0000003F  6 bits (bit 0x00 to bit 0x05)
-extern uint32  Target;  // 03FFFFFF 26 bits (bit 0x00 to bit 0x19) added to Pc
-extern uint32  Imm;     // 0000FFFF 16 bits (bit 0x00 to bit 0x0F)
-extern uint32  Label;   // 0000FFFF 16 bits (bit 0x00 to bit 0x0F) sign extended and added to Pc
-extern uint32  SysCall; // 03FFFFC0 20 bits (bit 0x06 to bit 0x1A)
-extern uint32  Fop;     // 03E0003F concatenation of Func and Format feilds
+extern uint32_t  Pc;      // program counter register.
+extern uint32_t  Opcode;  // current instruction.
+extern uint32_t  Op;      // FC000000  6 bits (bit 0x1A to bit 0x1F)
+extern uint32_t  Rs;      // 03E00000  5 bits (bit 0x15 to bit 0x19)
+extern uint32_t  Format;  // 03E00000  5 bits (bit 0x15 to bit 0x19)
+extern uint32_t  Rt;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
+extern uint32_t  Ft;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
+extern uint32_t  Rd;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
+extern uint32_t  Fs;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
+extern uint32_t  Sa;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
+extern uint32_t  Fd;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
+extern uint32_t  Func;    // 0000003F  6 bits (bit 0x00 to bit 0x05)
+extern uint32_t  Target;  // 03FFFFFF 26 bits (bit 0x00 to bit 0x19) added to Pc
+extern uint32_t  Imm;     // 0000FFFF 16 bits (bit 0x00 to bit 0x0F)
+extern uint32_t  Label;   // 0000FFFF 16 bits (bit 0x00 to bit 0x0F) sign extended and added to Pc
+extern uint32_t  SysCall; // 03FFFFC0 20 bits (bit 0x06 to bit 0x1A)
+extern uint32_t  Fop;     // 03E0003F concatenation of Func and Format feilds
 
-uint32 r[32];
-uint32 pc;
-uint32 hi;
-uint32 lo;
+uint32_t r[32];
+uint32_t pc;
+uint32_t hi;
+uint32_t lo;
 
 int pass4(void) {
 	// step through code seperating code from data.
@@ -47,13 +47,13 @@ int pass4(void) {
 	lo = 0;
 	r[29] = 0x801FFFF0; // set up stack pointer
 
-	uint8 *RAM = (uint8*)Code;
+	uint8_t *RAM = (uint8_t*)Code;
 
 	//80069C6C: L80069C6C:  addiu   r29, r29, 0xFFE8                              # "...'" 27BDFFE8
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		if ((Flag[Pointer] & FlagCode) == FlagCode) {
 			Pc      = Address + Pointer + 4;
-			Opcode  = Code[Pointer/sizeof(uint32)];
+			Opcode  = Code[Pointer/sizeof(uint32_t)];
 			Op      = ((Opcode & 0xFC000000) >> 0x1A);
 			Rs      = ((Opcode & 0x03E00000) >> 0x15);
 			Format  = ((Opcode & 0x03E00000) >> 0x15);
@@ -74,8 +74,8 @@ int pass4(void) {
 			Label  = (Label << 0x02) + Pc;
 			Fop    = ((Format & 0x10) << 0x06) | Func;
 
-			uint32 uImm = Imm;
-			uint32 sImm = Imm; if (sImm & 0x00008000) sImm |= 0xFFFF0000;
+			uint32_t uImm = Imm;
+			uint32_t sImm = Imm; if (sImm & 0x00008000) sImm |= 0xFFFF0000;
 
 			if (Opcode == 0x03E00008) { // jr r31
 				for (int i = 0; i < 32; i++) r[i] = 0;
@@ -111,7 +111,7 @@ int pass4(void) {
 					break;
 				}
 				Flag[r[Rs] + Imm - Address] = (Flag[r[Rs] + Imm - Address] & 0xFFFFFFFC) | FlagLabel | FlagByte;
-				r[Rt] = *(uint8*)&RAM[r[Rs] + Imm - Address];
+				r[Rt] = *(uint8_t*)&RAM[r[Rs] + Imm - Address];
 				break;
 			case 0x21: //Print("lh      %s, %s(%s)",     Reg(cpu, Rt), Number, Reg(cpu, Rs));  break;
            	case 0x25: //Print("lhu     %s, %s(%s)",     Reg(cpu, Rt), Number, Reg(cpu, Rs));  break;
@@ -121,7 +121,7 @@ int pass4(void) {
 					break;
 				}
 				Flag[r[Rs] + Imm - Address] = (Flag[r[Rs] + Imm - Address] & 0xFFFFFFFC) | FlagLabel | FlagHalf;
-				r[Rt] = *(uint16*)&RAM[r[Rs] + Imm - Address];
+				r[Rt] = *(uint16_t*)&RAM[r[Rs] + Imm - Address];
 				break;
            	
 			case 0x23: //Print("lw      %s, %s(%s)",     Reg(cpu, Rt), Number, Reg(cpu, Rs));  break;
@@ -134,7 +134,7 @@ int pass4(void) {
            	case 0x3A: //Print("swc2    %s, %s(%s)",     Reg(gted, Rt), Number, Reg(cpu, Rs)); break;
 				if (((r[Rs] + Imm) <  Address) || ((r[Rs] + Imm) >= Address + Binary.Size)) break;
 				Flag[r[Rs] + Imm - Address] = (Flag[r[Rs] + Imm - Address] & 0xFFFFFFFC) | FlagLabel;
-				r[Rt] = *(uint32*)&RAM[r[Rs] + Imm - Address];
+				r[Rt] = *(uint32_t*)&RAM[r[Rs] + Imm - Address];
 				break;
            	default:
 				break;

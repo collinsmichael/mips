@@ -3,251 +3,252 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "Parser.h"
 #include "Symbol.h"
 
 #pragma warning(disable:4996)
 
-extern char  *CpuReg[0x40];
-extern char  *GpuCReg[0x60];
-extern char  *GteCReg[0x60];
-extern char  *GteDReg[0x60];
-extern char  *Mnemonic[0x60];
-extern uint32 Opcode[0x60];
+extern const char  *CpuReg[0x40];
+extern const char  *GpuCReg[0x60];
+extern const char  *GteCReg[0x60];
+extern const char  *GteDReg[0x60];
+extern const char  *Mnemonic[0x60];
+extern uint32_t Opcode[0x60];
 
-static uint32 NumSymbols;
-static uint32 Sym;
+static uint32_t NumSymbols;
+static uint32_t Sym;
 static char  *Text;
-static uint32 Length;
-static uint32 Flags;
-static uint32 MetaData;
-static uint32 Address;
+static uint32_t Length;
+static uint32_t Flags;
+static uint32_t MetaData;
+static uint32_t Address;
 
-uint32 Param0(uint32 mnemonic)
+uint32_t Param0(uint32_t mnemonic)
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
 	return (OpCode);
 }
 
-uint32 Param1(uint32 mnemonic) // op CpuRt, GpuRd
+uint32_t Param1(uint32_t mnemonic) // op CpuRt, GpuRd
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 GpuRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t GpuRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GPUREG)  GpuRd = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRt|GpuRd);
 }
 
-uint32 Param2(uint32 mnemonic) // op CpuRt, GtecRd
+uint32_t Param2(uint32_t mnemonic) // op CpuRt, GtecRd
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 GtecRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t GtecRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GTECTRL) GtecRd = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRt|GtecRd);
 }
 
-uint32 Param3(uint32 mnemonic) // op CpuRt, GtedRd
+uint32_t Param3(uint32_t mnemonic) // op CpuRt, GtedRd
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 GtedRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t GtedRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GTEDATA) GtedRd = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRt|GtedRd);
 }
 
-uint32 Param4(uint32 mnemonic) // op CpuRd
+uint32_t Param4(uint32_t mnemonic) // op CpuRd
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t CpuRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRd = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRd);
 }
 
-uint32 Param5(uint32 mnemonic) // op CpuRd, CpuRs, CpuRt
+uint32_t Param5(uint32_t mnemonic) // op CpuRd, CpuRs, CpuRt
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t CpuRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRd = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRd = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRd = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRs = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRd|CpuRs|CpuRt);
 }
 
-uint32 Param6(uint32 mnemonic) // op CpuRd, CpuRt, CpuRs
+uint32_t Param6(uint32_t mnemonic) // op CpuRd, CpuRt, CpuRs
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t CpuRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRd = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRd = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRd = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRd|CpuRt|CpuRs);
 }
 
-uint32 Param7(uint32 mnemonic) // op CpuRd, CpuRt, Sa
+uint32_t Param7(uint32_t mnemonic) // op CpuRd, CpuRt, Sa
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t CpuRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRd = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRd = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRd = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Sa = SymbolGetMetaData(Sym) << 0x06;
+	uint32_t Sa = SymbolGetMetaData(Sym) << 0x06;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Sa = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRd|CpuRt|Sa);
 }
 
-uint32 Param8(uint32 mnemonic) // op CpuRs
+uint32_t Param8(uint32_t mnemonic) // op CpuRs
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRs);
 }
 
-uint32 Param9(uint32 mnemonic) // op CpuRs, CpuRd
+uint32_t Param9(uint32_t mnemonic) // op CpuRs, CpuRd
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRs = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRd = SymbolGetMetaData(Sym) << 0x0B;
+	uint32_t CpuRd = SymbolGetMetaData(Sym) << 0x0B;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRd = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRs|CpuRd);
 }
 
-uint32 ParamA(uint32 mnemonic) // op CpuRs, CpuRt
+uint32_t ParamA(uint32_t mnemonic) // op CpuRs, CpuRt
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRs = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRs|CpuRt);
 }
 
-uint32 ParamB(uint32 mnemonic) // op CpuRs, CpuRt, Imm
+uint32_t ParamB(uint32_t mnemonic) // op CpuRs, CpuRt, Imm
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRs = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Imm = SymbolGetMetaData(Sym);
+	uint32_t Imm = SymbolGetMetaData(Sym);
 	Imm = ((Imm-Address)/4) & 0x0000FFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
@@ -256,19 +257,19 @@ uint32 ParamB(uint32 mnemonic) // op CpuRs, CpuRt, Imm
 	return (OpCode|CpuRs|CpuRt|Imm);
 }
 
-uint32 ParamC(uint32 mnemonic) // op CpuRs, Imm
+uint32_t ParamC(uint32_t mnemonic) // op CpuRs, Imm
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRs = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Imm = SymbolGetMetaData(Sym);
+	uint32_t Imm = SymbolGetMetaData(Sym);
 	Imm = ((Imm-Address)/4) & 0x0000FFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
@@ -276,26 +277,26 @@ uint32 ParamC(uint32 mnemonic) // op CpuRs, Imm
 	return (OpCode|CpuRs|Imm);
 }
 
-uint32 ParamD(uint32 mnemonic) // op CpuRt, Imm(CpuRs)
+uint32_t ParamD(uint32_t mnemonic) // op CpuRt, Imm(CpuRs)
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
+	uint32_t Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) Imm = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != '(')              Imm = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
@@ -305,71 +306,71 @@ uint32 ParamD(uint32 mnemonic) // op CpuRt, Imm(CpuRs)
 	return (OpCode|CpuRt|Imm|CpuRs);
 }
 
-uint32 ParamE(uint32 mnemonic) // op CpuRt, CpuRs, Imm
+uint32_t ParamE(uint32_t mnemonic) // op CpuRt, CpuRs, Imm
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRs = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
+	uint32_t Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRt|CpuRs|Imm);
 }
 
-uint32 ParamF(uint32 mnemonic) // op CpuRt, Imm
+uint32_t ParamF(uint32_t mnemonic) // op CpuRt, Imm
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 CpuRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t CpuRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              CpuRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
+	uint32_t Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|CpuRt|Imm);
 }
 
-uint32 ParamG(uint32 mnemonic) // op GtedRt, Imm(CpuRs)
+uint32_t ParamG(uint32_t mnemonic) // op GtedRt, Imm(CpuRs)
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 GtedRt = SymbolGetMetaData(Sym) << 0x10;
+	uint32_t GtedRt = SymbolGetMetaData(Sym) << 0x10;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GTEDATA) GtedRt = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) GtedRt = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != ',')              GtedRt = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
+	uint32_t Imm = SymbolGetMetaData(Sym) & 0x0000FFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) Imm = 0xFFFFFFFF;
 	if (SymbolGetMetaData(Sym) != '(')              Imm = 0xFFFFFFFF;
 	Sym++;
 
-	uint32 CpuRs = SymbolGetMetaData(Sym) << 0x15;
+	uint32_t CpuRs = SymbolGetMetaData(Sym) << 0x15;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_CPUREG)  CpuRs = 0xFFFFFFFF;
 	Sym++;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_GRAMMAR) CpuRs = 0xFFFFFFFF;
@@ -379,34 +380,34 @@ uint32 ParamG(uint32 mnemonic) // op GtedRt, Imm(CpuRs)
 	return (OpCode|GtedRt|Imm|CpuRs);
 }
 
-uint32 ParamH(uint32 mnemonic) // op Imm
+uint32_t ParamH(uint32_t mnemonic) // op Imm
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 Imm = (SymbolGetMetaData(Sym) << 0x06) & 0x03FFFFFC;
+	uint32_t Imm = (SymbolGetMetaData(Sym) << 0x06) & 0x03FFFFFC;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|Imm);
 }
 
-uint32 ParamI(uint32 mnemonic) // op Imm
+uint32_t ParamI(uint32_t mnemonic) // op Imm
 {
-	uint32 OpCode = Opcode[mnemonic];
+	uint32_t OpCode = Opcode[mnemonic];
 	Sym++;
 
-	uint32 Imm = (SymbolGetMetaData(Sym)>>2) & 0x03FFFFFF;
+	uint32_t Imm = (SymbolGetMetaData(Sym)>>2) & 0x03FFFFFF;
 	if (SymbolGetFlags(Sym) != SYMBOL_FLAG_NUMERIC) Imm = 0xFFFFFFFF;
 	Sym++;
 
 	return (OpCode|Imm);
 }
 
-uint32 Assemble(FILE *File)
+uint32_t Assemble(FILE *File)
 {
-	uint32 OpCode = 0x00000000; // reset OpCode
-	uint32 mnemonic = MetaData; // identify OpCode
+	uint32_t OpCode = 0x00000000; // reset OpCode
+	uint32_t mnemonic = MetaData; // identify OpCode
 
 	// consume arguments
 	if      (mnemonic >= CDP     && mnemonic <= NCCT ) OpCode = Param0(mnemonic); // op
@@ -445,10 +446,10 @@ uint32 Assemble(FILE *File)
 	return OpCode;
 }
 
-uint32 Direct(FILE *File)
+uint32_t Direct(FILE *File)
 {
-	uint32 OpCode;
-	uint32 Flags;
+	uint32_t OpCode;
+	uint32_t Flags;
 	char  *Text;
 	switch (MetaData) {
 	case DIRECTIVE_BYTE:
@@ -489,7 +490,7 @@ uint32 Direct(FILE *File)
 	return true;
 }
 
-uint32 Parser(char *FilePath)
+uint32_t Parser(char *FilePath)
 {
 	int    LenFilePath = strlen(FilePath);
 	char  *FileName = (char*)malloc(LenFilePath+4);
@@ -504,7 +505,7 @@ uint32 Parser(char *FilePath)
 	strcat(FileName, ".PRG");
 	FILE *File = fopen(FileName, "wb");
 
-	uint32 OpCode;
+	uint32_t OpCode;
 	NumSymbols = SymbolGetNumSymbols();
 	Sym = 0;
 

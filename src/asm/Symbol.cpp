@@ -1,28 +1,29 @@
 #include <malloc.h>
 #include <memory.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "Symbol.h"
 
 char   *Ascii;
-uint32  NumSymbols;
+uint32_t  NumSymbols;
 char  **SymbolText;
-uint32 *SymbolLength;
-uint32 *SymbolFlags;
-uint32 *SymbolMetaData;
-uint32 *SymbolAddress;
+uint32_t *SymbolLength;
+uint32_t *SymbolFlags;
+uint32_t *SymbolMetaData;
+uint32_t *SymbolAddress;
 
-uint32 SymbolInit(void)
+uint32_t SymbolInit(void)
 {
 	SymbolText     = (char** )malloc(sizeof(char**));  if (!SymbolText    ) return false;
-	SymbolLength   = (uint32*)malloc(sizeof(uint32*)); if (!SymbolLength  ) return false;
-	SymbolFlags    = (uint32*)malloc(sizeof(uint32*)); if (!SymbolFlags   ) return false;
-	SymbolMetaData = (uint32*)malloc(sizeof(uint32*)); if (!SymbolMetaData) return false;
-	SymbolAddress  = (uint32*)malloc(sizeof(uint32*)); if (!SymbolAddress ) return false;
+	SymbolLength   = (uint32_t*)malloc(sizeof(uint32_t*)); if (!SymbolLength  ) return false;
+	SymbolFlags    = (uint32_t*)malloc(sizeof(uint32_t*)); if (!SymbolFlags   ) return false;
+	SymbolMetaData = (uint32_t*)malloc(sizeof(uint32_t*)); if (!SymbolMetaData) return false;
+	SymbolAddress  = (uint32_t*)malloc(sizeof(uint32_t*)); if (!SymbolAddress ) return false;
 	NumSymbols = 0;
 	return true;
 }
 
-uint32 SymbolFree(void)
+uint32_t SymbolFree(void)
 {
 	free(SymbolText);     SymbolText     = 0;
 	free(SymbolLength);   SymbolLength   = 0;
@@ -33,13 +34,13 @@ uint32 SymbolFree(void)
 	return true;
 }
 
-uint32 SymbolAdd(char *Text, uint32 Length, uint32 Flags, uint32 MetaData, uint32 Address)
+uint32_t SymbolAdd(char *Text, uint32_t Length, uint32_t Flags, uint32_t MetaData, uint32_t Address)
 {
 	SymbolText     = (char** )realloc(SymbolText    , (NumSymbols+1)*sizeof(char**));
-	SymbolLength   = (uint32*)realloc(SymbolLength  , (NumSymbols+1)*sizeof(uint32*));
-	SymbolFlags    = (uint32*)realloc(SymbolFlags   , (NumSymbols+1)*sizeof(uint32*));
-	SymbolMetaData = (uint32*)realloc(SymbolMetaData, (NumSymbols+1)*sizeof(uint32*));
-	SymbolAddress  = (uint32*)realloc(SymbolAddress , (NumSymbols+1)*sizeof(uint32*));
+	SymbolLength   = (uint32_t*)realloc(SymbolLength  , (NumSymbols+1)*sizeof(uint32_t*));
+	SymbolFlags    = (uint32_t*)realloc(SymbolFlags   , (NumSymbols+1)*sizeof(uint32_t*));
+	SymbolMetaData = (uint32_t*)realloc(SymbolMetaData, (NumSymbols+1)*sizeof(uint32_t*));
+	SymbolAddress  = (uint32_t*)realloc(SymbolAddress , (NumSymbols+1)*sizeof(uint32_t*));
 	if (!SymbolText    ) return false;
 	if (!SymbolLength  ) return false;
 	if (!SymbolFlags   ) return false;
@@ -70,70 +71,70 @@ uint32 SymbolAdd(char *Text, uint32 Length, uint32 Flags, uint32 MetaData, uint3
 	return true;
 }
 
-uint32 SymbolGetNumSymbols(void)
+uint32_t SymbolGetNumSymbols(void)
 {
 	return NumSymbols;
 }
 
-char *SymbolGetText(uint32 SymbolNum)
+char *SymbolGetText(uint32_t SymbolNum)
 {
 	if (SymbolNum >= 0 && SymbolNum < NumSymbols) return SymbolText[SymbolNum];
 	return 0;
 }
 
-uint32 SymbolGetLength(uint32 SymbolNum)
+uint32_t SymbolGetLength(uint32_t SymbolNum)
 {
 	if (SymbolNum >= 0 && SymbolNum < NumSymbols) return SymbolLength[SymbolNum];
 	return 0;
 }
 
-uint32 SymbolGetFlags(uint32 SymbolNum)
+uint32_t SymbolGetFlags(uint32_t SymbolNum)
 {
 	if (SymbolNum >= 0 && SymbolNum < NumSymbols) return SymbolFlags[SymbolNum];
 	return 0;
 }
 
-uint32 SymbolGetMetaData(uint32 SymbolNum)
+uint32_t SymbolGetMetaData(uint32_t SymbolNum)
 {
 	if (SymbolNum >= 0 && SymbolNum < NumSymbols) return SymbolMetaData[SymbolNum];
 	return 0;
 }
 
-uint32 SymbolGetAddress(uint32 SymbolNum)
+uint32_t SymbolGetAddress(uint32_t SymbolNum)
 {
 	if (SymbolNum >= 0 && SymbolNum < NumSymbols) return SymbolAddress[SymbolNum];
 	return 0;
 }
 
-uint32 SymbolSetText(uint32 SymbolNum, char *Text)
+uint32_t SymbolSetText(uint32_t SymbolNum, char *Text)
 {
 	if (SymbolNum < 0 || SymbolNum >= NumSymbols) return false;
 	SymbolText[SymbolNum] = Text;
 	return true;
 }
 
-uint32 SymbolSetLength(uint32 SymbolNum, uint32 Length)
+uint32_t SymbolSetLength(uint32_t SymbolNum, uint32_t Length)
 {
 	if (SymbolNum < 0 || SymbolNum >= NumSymbols) return false;
 	SymbolLength[SymbolNum] = Length;
 	return true;
 }
 
-uint32 SymbolSetFlags(uint32 SymbolNum, uint32 Flags)
+uint32_t SymbolSetFlags(uint32_t SymbolNum, uint32_t Flags)
 {
 	if (SymbolNum < 0 || SymbolNum >= NumSymbols) return false;
 	SymbolFlags[SymbolNum] = Flags;
 	return true;
 }
 
-uint32 SymbolSetMetaData(uint32 SymbolNum, uint32 MetaData)
+uint32_t SymbolSetMetaData(uint32_t SymbolNum, uint32_t MetaData)
 {
 	if (SymbolNum < 0 || SymbolNum >= NumSymbols) return false;
 	SymbolMetaData[SymbolNum] = MetaData;
 	return true;
 }
 
-uint32 SymbolSetAddress(uint32 SymbolNum, uint32 Address)
+uint32_t SymbolSetAddress(uint32_t SymbolNum, uint32_t Address)
 {
 	if (SymbolNum < 0 || SymbolNum >= NumSymbols) return false;
 	SymbolAddress[SymbolNum] = Address;

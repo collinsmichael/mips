@@ -1,7 +1,8 @@
+#include <stdint.h>
 #include "Symbol.h"
 
 // CPU General Purpose Registers
-char *CpuReg[0x40] = {
+const char *CpuReg[0x40] = {
 	"R0",   "R1",   "R2",   "R3",   "R4",   "R5",   "R6",   "R7",
 	"R8",   "R9",   "R10",  "R11",  "R12",  "R13",  "R14",  "R15",
 	"R16",  "R17",  "R18",  "R19",  "R20",  "R21",  "R22",  "R23",
@@ -13,7 +14,7 @@ char *CpuReg[0x40] = {
 };
 
 // GPU Control Registers
-char *GpuReg[0x60] = {
+const char *GpuReg[0x60] = {
 	"COP0CR00", "COP0CR01", "COP0CR02", "COP0CR03", "COP0CR04", "COP0CR05", "COP0CR06", "COP0CR07",
 	"COP0CR08", "COP0CR09", "COP0CR10", "COP0CR11", "COP0CR12", "COP0CR13", "COP0CR14", "COP0CR15",
 	"COP0CR16", 0,          0,          0,          0,          0,          0,          0,
@@ -33,7 +34,7 @@ char *GpuReg[0x60] = {
 };
 
 // GTE Control Registers
-char *GteCReg[0x60] = {
+const char *GteCReg[0x60] = {
 	"GTECR00", "GTECR01", "GTECR02", "GTECR03", "GTECR04", "GTECR05", "GTECR06", "GTECR07",
 	"GTECR08", "GTECR09", "GTECR10", "GTECR11", "GTECR12", "GTECR13", "GTECR14", "GTECR15",
 	"GTECR16", "GTECR17", "GTECR18", "GTECR19", "GTECR20", "GTECR21", "GTECR22", "GTECR23",
@@ -53,7 +54,7 @@ char *GteCReg[0x60] = {
 };
 
 // GTE Data Registers
-char *GteDReg[0x60] = {
+const char *GteDReg[0x60] = {
 	"GTEDR00", "GTEDR01", "GTEDR02", "GTEDR03", "GTEDR04", "GTEDR05", "GTEDR06", "GTEDR07",
 	"GTEDR08", "GTEDR09", "GTEDR10", "GTEDR11", "GTEDR12", "GTEDR13", "GTEDR14", "GTEDR15",
 	"GTEDR16", "GTEDR17", "GTEDR18", "GTEDR19", "GTEDR20", "GTEDR21", "GTEDR22", "GTEDR23",
@@ -73,7 +74,7 @@ char *GteDReg[0x60] = {
 };
 
 // Opcode Mnemonics
-char *Mnemonic[0x60] = {
+const char *Mnemonic[0x60] = {
 	"CDP",     "RFE",     "TLBWI",   "GPF",     "CC",      "RTPT",    "AVSZ3",   "TLBR",
 	"NCLIP",   "SQR",     "RTPS",    "DPCT",    "NCDS",    "DPCS",    "MVMVA",   "NOP",
 	"NCCS",    "NCDT",    "INTPL",   "NCS",     "OP",      "NCT",     "DPCL",    "GPL",
@@ -89,7 +90,7 @@ char *Mnemonic[0x60] = {
 };
 
 // Opcode binary encodings
-uint32 Opcode[0x60] = {
+uint32_t Opcode[0x60] = {
 //	0x4A000014, 0x40000010, 0x40000002, 0x4B800000, 0x4A00001C, 0x4A200000, 0x4A00002D, 0x40000001, 
 	0x4A000014, 0x40000010, 0x40000002, 0x4B98003D, 0x4A00001C, 0x4A280030, 0x4B58002D, 0x40000001, 
 //	0x4A000006, 0x4AA00000, 0x4A000001, 0x4A00002A, 0x4A000013, 0x4A000010, 0x4A000012, 0x00000000, 
@@ -107,6 +108,6 @@ uint32 Opcode[0x60] = {
 	0x3C000000, 0xE8000000, 0xC8000000, 0x0000000C, 0x0000000D, 0x0C000000, 0x08000000, 0xFFFFFFFF
 };
 
-char *Directive[0x20] = {
+const char *Directive[0x20] = {
 	"BYTE", "HALF", "WORD", 0
 };

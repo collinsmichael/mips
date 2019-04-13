@@ -12,10 +12,10 @@
 // Pass 6: Print output to file.
 //
 
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
-
 #include "Main.h"
 #include "Dasm.h"
 
@@ -32,45 +32,45 @@ extern bool volatile ShowAscii;
 // =========================
 // options and user settings
 // =========================
-uint32 Address = 0;
-uint32 Entry   = 0;
-uint32 Naming  = 3;
+uint32_t Address = 0;
+uint32_t Entry   = 0;
+uint32_t Naming  = 3;
 char  *Type;
 
 // ==================
 // Binary File loader
 // ==================
-//uint8   *flag;
-uint32    *Code;
-uint32    *Flag;
-uint32     Pointer;
+//uint8_t   *flag;
+uint32_t    *Code;
+uint32_t    *Flag;
+uint32_t     Pointer;
 binary     Binary;
 char       Text[0x100];
 char       Number[0x100];
 PsxExeHdr *Hdr;
-uint32     LenHTML;
+uint32_t     LenHTML;
 bool       JrReg;
 
 // ===========================
 // instruction decoding feilds
 // ===========================
-uint32 Pc;      // program counter register.
-uint32 Opcode;  // current instruction.
-uint32 Op;      // FC000000  6 bits (bit 0x1A to bit 0x1F)
-uint32 Rs;      // 03E00000  5 bits (bit 0x15 to bit 0x19)
-uint32 Format;  // 03E00000  5 bits (bit 0x15 to bit 0x19)
-uint32 Rt;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
-uint32 Ft;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
-uint32 Rd;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
-uint32 Fs;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
-uint32 Sa;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
-uint32 Fd;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
-uint32 Func;    // 0000003F  6 bits (bit 0x00 to bit 0x05)
-uint32 Target;  // 03FFFFFF 26 bits (bit 0x00 to bit 0x19) added to Pc
-uint32 Imm;     // 0000FFFF 16 bits (bit 0x00 to bit 0x0F)
-uint32 Label;   // 0000FFFF 16 bits (bit 0x00 to bit 0x0F) sign extended and added to Pc
-uint32 SysCall; // 03FFFFC0 20 bits (bit 0x06 to bit 0x1A)
-uint32 Fop;     // 03E0003F concatenation of Func and Format feilds
+uint32_t Pc;      // program counter register.
+uint32_t Opcode;  // current instruction.
+uint32_t Op;      // FC000000  6 bits (bit 0x1A to bit 0x1F)
+uint32_t Rs;      // 03E00000  5 bits (bit 0x15 to bit 0x19)
+uint32_t Format;  // 03E00000  5 bits (bit 0x15 to bit 0x19)
+uint32_t Rt;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
+uint32_t Ft;      // 001F0000  5 bits (bit 0x10 to bit 0x14)
+uint32_t Rd;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
+uint32_t Fs;      // 0000F800  5 bits (bit 0x0B to bit 0x0F)
+uint32_t Sa;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
+uint32_t Fd;      // 000007C0  5 bits (bit 0x06 to bit 0x0A)
+uint32_t Func;    // 0000003F  6 bits (bit 0x00 to bit 0x05)
+uint32_t Target;  // 03FFFFFF 26 bits (bit 0x00 to bit 0x19) added to Pc
+uint32_t Imm;     // 0000FFFF 16 bits (bit 0x00 to bit 0x0F)
+uint32_t Label;   // 0000FFFF 16 bits (bit 0x00 to bit 0x0F) sign extended and added to Pc
+uint32_t SysCall; // 03FFFFC0 20 bits (bit 0x06 to bit 0x1A)
+uint32_t Fop;     // 03E0003F concatenation of Func and Format feilds
 
 // =============
 // register File
@@ -222,15 +222,15 @@ const char *gted[32*4] = {
 static char Ascii[0x10];
 static char Buffer[0x1000];
 
-int Print(char *Format, ...)
+int Print(const char *Format, ...)
 {
 	static va_list list;
 	va_start(list, Format);
-	vsprintf_s(Text, sizeof(Text), Format, list);
+	vsprintf(Text, Format, list);
 	va_end(list);
 
 	//fprintf(Binary.File, "%08X: %08X %s\r\n", Address+Pointer, Opcode, Text);
-	*(uint32*)Ascii = Opcode;
+	*(uint32_t*)Ascii = Opcode;
 	if (Ascii[0] < ' ') Ascii[0] = '.';
 	if (Ascii[1] < ' ') Ascii[1] = '.';
 	if (Ascii[2] < ' ') Ascii[2] = '.';
@@ -240,7 +240,7 @@ int Print(char *Format, ...)
 	int Width = 0;
 	int Length = 0;
 	if (ShowAddress) {
-		sprintf_s(&Buffer[Length], sizeof(Buffer)-Length, "%08X:", Address+Pointer, Address+Pointer);
+		sprintf(&Buffer[Length], "%08X:", Address+Pointer);
 		Length = strlen(Buffer);
 		//Width += 0x09;
 		Width += 0x20;
@@ -254,12 +254,12 @@ int Print(char *Format, ...)
 
 	if (ShowLabel)  {
 		if (Address+Pointer == Entry) {
-			sprintf_s(&Buffer[Length], sizeof(Buffer)-Length, " Entry:     ", Address+Pointer);
+			sprintf(&Buffer[Length], " Entry:     ");
 		} else {
 			if ((Flag[Pointer] & FlagLabel) == FlagLabel) {
-				sprintf_s(&Buffer[Length], sizeof(Buffer)-Length, " L%08X: ", Address+Pointer);
+				sprintf(&Buffer[Length], " L%08X: ", Address+Pointer);
 			} else {
-				sprintf_s(&Buffer[Length], sizeof(Buffer)-Length, "            ", Address+Pointer);
+				sprintf(&Buffer[Length], "            ");
 			}
 		}
 		Length = strlen(Buffer);
@@ -267,7 +267,7 @@ int Print(char *Format, ...)
 	}
 
 	if (ShowMnemonic) {
-		sprintf_s(&Buffer[Length], sizeof(Buffer)-Length, " %s", Text);
+		sprintf(&Buffer[Length], " %s", Text);
 		Length = strlen(Buffer);
 		//Width += 0x21;
 		Width += 0x21;
@@ -276,12 +276,12 @@ int Print(char *Format, ...)
 	//Width += LenHTML;
 	if (ShowAscii) {
 		for (int i = Length; i < Width; i++) Buffer[i] = ' ';
-		sprintf_s(&Buffer[Width], sizeof(Buffer)-Width, "# \"%s\"\0", Ascii);
+		sprintf(&Buffer[Width], "# \"%s\"", Ascii);
 		Length = strlen(Buffer);
 	}
 
 	if (ShowOpcode) {
-		sprintf_s(&Buffer[Length], sizeof(Buffer)-Length, " %08X",  Opcode);
+		sprintf(&Buffer[Length], " %08X",  Opcode);
 		Length = strlen(Buffer);
 		Width += 0x09;
 	}
@@ -293,7 +293,7 @@ int Print(char *Format, ...)
 int RType(void)
 {
 	//Print("RType %02X %02X %02X %02X %02X %02X", Op, Rs, Rt, Rd, Sa, Func);
-	Type = "RType";
+	Type = (char*)"RType";
 	switch (Func) {
 	case 0x00:
 		if (Opcode == 0x00000000) { LenHTML = 14; Print("nop"); }
@@ -334,7 +334,7 @@ int RType(void)
 int IType(void)
 {
 	//Print("IType %02X %02X %04X", Op, Rs, Rt, Imm);
-	Type = "IType";
+	Type = (char*)"IType";
 	switch (Op) {
 	case 0x01:
 		if      (Rt == 0x00) { LenHTML = 52; Print("bltz    %s, 0x%08X", Reg(cpu, Rs), Label, Label); }
@@ -380,7 +380,7 @@ int IType(void)
 int JType(void)
 {
 	//Print("JType %07X", Op, Target);
-	Type = "JType";
+	Type = (char*)"JType";
 	switch (Op) {
 	case 0x02: LenHTML = 38; Print("j       0x%08X", Target, Target); break;
 	case 0x03: LenHTML = 38; Print("jal     0x%08X", Target, Target); break;
@@ -392,7 +392,7 @@ int JType(void)
 int Cop_0(void)
 {
 	// Print("Coprocessor 0 %02X %02X %02X %02X %02X %02X", Op, Format, Ft, Fs, Fd, Func); break;
-	Type = "Cop_0";
+	Type = (char*)"Cop_0";
 	switch (Format) {
 	default:   LenHTML = 14; Print("illegal"); break;
 	case 0x00: LenHTML = 42; Print("mfc0    %s, %s", Reg(cpu, Ft), Reg(cop0, Fs)); break;
@@ -417,7 +417,7 @@ int Cop_0(void)
 int Cop_1(void)
 {
 	//Print("Coprocessor 1 %02X %02X %02X %02X %02X %02X", Op, Format, Ft, Fs, Fd, Func);
-	Type = "Cop_1";
+	Type = (char*)"Cop_1";
 	LenHTML = 14;
 	Print("illegal");
 	return true;
@@ -426,7 +426,7 @@ int Cop_1(void)
 int Cop_2(void)
 {
 	//Print("Coprocessor 2 %02X %02X %02X %02X %02X %02X", Op, Format, Ft, Fs, Fd, Func);
-	Type = "Cop_2";
+	Type = (char*)"Cop_2";
 	switch (Format) {
 	case 0x00: LenHTML = 42; Print("mfc2    %s, %s", Reg(cpu, Ft), Reg(gted, Fs)); break;
 	case 0x02: LenHTML = 42; Print("cfc2    %s, %s", Reg(cpu, Ft), Reg(gtec, Fs)); break;
@@ -466,22 +466,22 @@ int Cop_2(void)
 int Cop_3(void)
 {
 	//Print("Coprocessor 3 %02X %02X %02X %02X %02X %02X", Op, Format, Ft, Fs, Fd, Func);
-	Type = "Cop_3";
+	Type = (char*)"Cop_3";
 	LenHTML = 14;
 	Print("illegal");
 	return true;
 }
 
-int Follow(uint32 Pc)
+int Follow(uint32_t Pc)
 {
 	if (Pc < Address || Pc > Address + Binary.Size) return true;
-	uint32 *Opcodes = (uint32*)Binary.Code;
+	uint32_t *Opcodes = (uint32_t*)Binary.Code;
 
 	while ((Pc >= Address) && (Pc <= (Address + Binary.Size))) {
 		if ((Flag[Pc-Address  ] & FlagCode) == FlagCode) return true;
 		if ((Flag[Pc-Address  ] & FlagData) == FlagData) return true;
 
-		Opcode  = Code[(Pc-Address)/sizeof(uint32)];
+		Opcode  = Code[(Pc-Address)/sizeof(uint32_t)];
 		Rs      = ((Opcode & 0x03E00000) >> 0x15);
 		Target  = ((Opcode & 0x01FFFFFF) >> 0x00);
 		Label   = ((Opcode & 0x0000FFFF) >> 0x00);
@@ -489,7 +489,7 @@ int Follow(uint32 Pc)
 		Target = (Target << 0x02) | (Pc & 0xF0000000);
 		Label  = (Label << 0x02) + Pc;
 
-		switch (Opcodes[(Pc-Address)/sizeof(uint32)]) {
+		switch (Opcodes[(Pc-Address)/sizeof(uint32_t)]) {
 		default:
 			Flag[Pc-Address  ] |= FlagCode;
 			break;
@@ -550,10 +550,10 @@ int pass1(void)
 int pass2(void)
 {
 	// identify opcodes
-	uint32 *Opcodes = (uint32*)Binary.Code;
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	uint32_t *Opcodes = (uint32_t*)Binary.Code;
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		Pc      = Address + Pointer + 4;
-		Opcode  = Code[Pointer/sizeof(uint32)];
+		Opcode  = Code[Pointer/sizeof(uint32_t)];
 		Op      = ((Opcode & 0xFC000000) >> 0x1A);
 		Rs      = ((Opcode & 0x03E00000) >> 0x15);
 		Format  = ((Opcode & 0x03E00000) >> 0x15);
@@ -574,56 +574,56 @@ int pass2(void)
 		Label  = (Label << 0x02) + Pc;
 		Fop    = ((Format & 0x10) << 0x06) | Func;
 
-		Opcodes[Pointer/sizeof(uint32)] = id_illegal;
+		Opcodes[Pointer/sizeof(uint32_t)] = id_illegal;
 		switch (Op) {
 		case 0x00:
 			switch (Func) {
 			case 0x00:
-				if (Opcode == 0x00000000) Opcodes[Pointer/sizeof(uint32)] = id_nop;
-				else                      Opcodes[Pointer/sizeof(uint32)] = id_sll;
+				if (Opcode == 0x00000000) Opcodes[Pointer/sizeof(uint32_t)] = id_nop;
+				else                      Opcodes[Pointer/sizeof(uint32_t)] = id_sll;
 				break;
-			case 0x02: Opcodes[Pointer/sizeof(uint32)] = id_srl    ; break;
-			case 0x03: Opcodes[Pointer/sizeof(uint32)] = id_sra    ; break;
-			case 0x04: Opcodes[Pointer/sizeof(uint32)] = id_sllv   ; break;
-			case 0x06: Opcodes[Pointer/sizeof(uint32)] = id_srlv   ; break;
-			case 0x07: Opcodes[Pointer/sizeof(uint32)] = id_srav   ; break;
-			case 0x08: Opcodes[Pointer/sizeof(uint32)] = id_jr     ; break;
-			case 0x09: Opcodes[Pointer/sizeof(uint32)] = id_jalr   ; break;
-			case 0x0C: Opcodes[Pointer/sizeof(uint32)] = id_syscall; break;
-			case 0x0D: Opcodes[Pointer/sizeof(uint32)] = id_break  ; break;
-			case 0x10: Opcodes[Pointer/sizeof(uint32)] = id_mfhi   ; break;
-			case 0x11: Opcodes[Pointer/sizeof(uint32)] = id_mthi   ; break;
-			case 0x12: Opcodes[Pointer/sizeof(uint32)] = id_mflo   ; break;
-			case 0x13: Opcodes[Pointer/sizeof(uint32)] = id_mtlo   ; break;
-			case 0x18: Opcodes[Pointer/sizeof(uint32)] = id_mult   ; break;
-			case 0x19: Opcodes[Pointer/sizeof(uint32)] = id_multu  ; break;
-			case 0x1A: Opcodes[Pointer/sizeof(uint32)] = id_div    ; break;
-			case 0x1B: Opcodes[Pointer/sizeof(uint32)] = id_divu   ; break;
-			case 0x20: Opcodes[Pointer/sizeof(uint32)] = id_add    ; break;
-			case 0x21: Opcodes[Pointer/sizeof(uint32)] = id_addu   ; break;
-			case 0x22: Opcodes[Pointer/sizeof(uint32)] = id_sub    ; break;
-			case 0x23: Opcodes[Pointer/sizeof(uint32)] = id_subu   ; break;
-			case 0x24: Opcodes[Pointer/sizeof(uint32)] = id_and    ; break;
-			case 0x25: Opcodes[Pointer/sizeof(uint32)] = id_or     ; break;
-			case 0x26: Opcodes[Pointer/sizeof(uint32)] = id_xor    ; break;
-			case 0x27: Opcodes[Pointer/sizeof(uint32)] = id_nor    ; break;
-			case 0x2A: Opcodes[Pointer/sizeof(uint32)] = id_slt    ; break;
-			case 0x2B: Opcodes[Pointer/sizeof(uint32)] = id_sltu   ; break;
+			case 0x02: Opcodes[Pointer/sizeof(uint32_t)] = id_srl    ; break;
+			case 0x03: Opcodes[Pointer/sizeof(uint32_t)] = id_sra    ; break;
+			case 0x04: Opcodes[Pointer/sizeof(uint32_t)] = id_sllv   ; break;
+			case 0x06: Opcodes[Pointer/sizeof(uint32_t)] = id_srlv   ; break;
+			case 0x07: Opcodes[Pointer/sizeof(uint32_t)] = id_srav   ; break;
+			case 0x08: Opcodes[Pointer/sizeof(uint32_t)] = id_jr     ; break;
+			case 0x09: Opcodes[Pointer/sizeof(uint32_t)] = id_jalr   ; break;
+			case 0x0C: Opcodes[Pointer/sizeof(uint32_t)] = id_syscall; break;
+			case 0x0D: Opcodes[Pointer/sizeof(uint32_t)] = id_break  ; break;
+			case 0x10: Opcodes[Pointer/sizeof(uint32_t)] = id_mfhi   ; break;
+			case 0x11: Opcodes[Pointer/sizeof(uint32_t)] = id_mthi   ; break;
+			case 0x12: Opcodes[Pointer/sizeof(uint32_t)] = id_mflo   ; break;
+			case 0x13: Opcodes[Pointer/sizeof(uint32_t)] = id_mtlo   ; break;
+			case 0x18: Opcodes[Pointer/sizeof(uint32_t)] = id_mult   ; break;
+			case 0x19: Opcodes[Pointer/sizeof(uint32_t)] = id_multu  ; break;
+			case 0x1A: Opcodes[Pointer/sizeof(uint32_t)] = id_div    ; break;
+			case 0x1B: Opcodes[Pointer/sizeof(uint32_t)] = id_divu   ; break;
+			case 0x20: Opcodes[Pointer/sizeof(uint32_t)] = id_add    ; break;
+			case 0x21: Opcodes[Pointer/sizeof(uint32_t)] = id_addu   ; break;
+			case 0x22: Opcodes[Pointer/sizeof(uint32_t)] = id_sub    ; break;
+			case 0x23: Opcodes[Pointer/sizeof(uint32_t)] = id_subu   ; break;
+			case 0x24: Opcodes[Pointer/sizeof(uint32_t)] = id_and    ; break;
+			case 0x25: Opcodes[Pointer/sizeof(uint32_t)] = id_or     ; break;
+			case 0x26: Opcodes[Pointer/sizeof(uint32_t)] = id_xor    ; break;
+			case 0x27: Opcodes[Pointer/sizeof(uint32_t)] = id_nor    ; break;
+			case 0x2A: Opcodes[Pointer/sizeof(uint32_t)] = id_slt    ; break;
+			case 0x2B: Opcodes[Pointer/sizeof(uint32_t)] = id_sltu   ; break;
 			}
 			break;
-		case 0x02: Opcodes[Pointer/sizeof(uint32)] = id_j;   break;
-		case 0x03: Opcodes[Pointer/sizeof(uint32)] = id_jal; break;
+		case 0x02: Opcodes[Pointer/sizeof(uint32_t)] = id_j;   break;
+		case 0x03: Opcodes[Pointer/sizeof(uint32_t)] = id_jal; break;
 		case 0x10:
 			switch (Format) {
-			case 0x00: Opcodes[Pointer/sizeof(uint32)] = id_mfc0; break;
-			case 0x04: Opcodes[Pointer/sizeof(uint32)] = id_mtc0; break;
+			case 0x00: Opcodes[Pointer/sizeof(uint32_t)] = id_mfc0; break;
+			case 0x04: Opcodes[Pointer/sizeof(uint32_t)] = id_mtc0; break;
 			case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
 			case 0x18: case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1E: case 0x1F:
 				switch (Func & 0x1F) {
-				case 0x01: Opcodes[Pointer/sizeof(uint32)] = id_tlbr;    break;
-				case 0x02: Opcodes[Pointer/sizeof(uint32)] = id_tlbwi;   break;
-				case 0x06: Opcodes[Pointer/sizeof(uint32)] = id_tlbwr;   break;
-				case 0x10: Opcodes[Pointer/sizeof(uint32)] = id_rfe;     break;
+				case 0x01: Opcodes[Pointer/sizeof(uint32_t)] = id_tlbr;    break;
+				case 0x02: Opcodes[Pointer/sizeof(uint32_t)] = id_tlbwi;   break;
+				case 0x06: Opcodes[Pointer/sizeof(uint32_t)] = id_tlbwr;   break;
+				case 0x10: Opcodes[Pointer/sizeof(uint32_t)] = id_rfe;     break;
 				}
 				break;
 			}
@@ -631,71 +631,71 @@ int pass2(void)
 
 		case 0x12:
 			switch (Format) {
-			case 0x00: Opcodes[Pointer/sizeof(uint32)] = id_mfc2;  break;
-			case 0x02: Opcodes[Pointer/sizeof(uint32)] = id_cfc2;  break;
-			case 0x04: Opcodes[Pointer/sizeof(uint32)] = id_mtc2;  break;
-			case 0x06: Opcodes[Pointer/sizeof(uint32)] = id_ctc2;  break;
-			case 0x11: Opcodes[Pointer/sizeof(uint32)] = id_rtpt;  break;
-			case 0x1C: Opcodes[Pointer/sizeof(uint32)] = id_gpf;   break;
-			case 0x1D: Opcodes[Pointer/sizeof(uint32)] = id_gpl;   break;
-			case 0x14: Opcodes[Pointer/sizeof(uint32)] = id_intpl; break;
-			case 0x15: Opcodes[Pointer/sizeof(uint32)] = id_sqr;   break;
+			case 0x00: Opcodes[Pointer/sizeof(uint32_t)] = id_mfc2;  break;
+			case 0x02: Opcodes[Pointer/sizeof(uint32_t)] = id_cfc2;  break;
+			case 0x04: Opcodes[Pointer/sizeof(uint32_t)] = id_mtc2;  break;
+			case 0x06: Opcodes[Pointer/sizeof(uint32_t)] = id_ctc2;  break;
+			case 0x11: Opcodes[Pointer/sizeof(uint32_t)] = id_rtpt;  break;
+			case 0x1C: Opcodes[Pointer/sizeof(uint32_t)] = id_gpf;   break;
+			case 0x1D: Opcodes[Pointer/sizeof(uint32_t)] = id_gpl;   break;
+			case 0x14: Opcodes[Pointer/sizeof(uint32_t)] = id_intpl; break;
+			case 0x15: Opcodes[Pointer/sizeof(uint32_t)] = id_sqr;   break;
 			default:
 				switch (Fop) {
-				case 0x401: Opcodes[Pointer/sizeof(uint32)] = id_rtps;    break;
-				case 0x406: Opcodes[Pointer/sizeof(uint32)] = id_nclip;   break;
-				case 0x40C: Opcodes[Pointer/sizeof(uint32)] = id_op;      break;
-				case 0x410: Opcodes[Pointer/sizeof(uint32)] = id_dpcs;    break;
-				case 0x412: Opcodes[Pointer/sizeof(uint32)] = id_mvmva;   break;
-				case 0x413: Opcodes[Pointer/sizeof(uint32)] = id_ncds;    break;
-				case 0x414: Opcodes[Pointer/sizeof(uint32)] = id_cdp;     break;
-				case 0x416: Opcodes[Pointer/sizeof(uint32)] = id_ncdt;    break;
-				case 0x41B: Opcodes[Pointer/sizeof(uint32)] = id_nccs;    break;
-				case 0x41C: Opcodes[Pointer/sizeof(uint32)] = id_cc;      break;
-				case 0x41E: Opcodes[Pointer/sizeof(uint32)] = id_ncs;     break;
-				case 0x420: Opcodes[Pointer/sizeof(uint32)] = id_nct;     break;
-				case 0x429: Opcodes[Pointer/sizeof(uint32)] = id_dpcl;    break;
-				case 0x42A: Opcodes[Pointer/sizeof(uint32)] = id_dpct;    break;
-				case 0x42D: Opcodes[Pointer/sizeof(uint32)] = id_avsz3;   break;
-				case 0x42E: Opcodes[Pointer/sizeof(uint32)] = id_avsz4;   break;
-				case 0x43F: Opcodes[Pointer/sizeof(uint32)] = id_ncct;    break;
+				case 0x401: Opcodes[Pointer/sizeof(uint32_t)] = id_rtps;    break;
+				case 0x406: Opcodes[Pointer/sizeof(uint32_t)] = id_nclip;   break;
+				case 0x40C: Opcodes[Pointer/sizeof(uint32_t)] = id_op;      break;
+				case 0x410: Opcodes[Pointer/sizeof(uint32_t)] = id_dpcs;    break;
+				case 0x412: Opcodes[Pointer/sizeof(uint32_t)] = id_mvmva;   break;
+				case 0x413: Opcodes[Pointer/sizeof(uint32_t)] = id_ncds;    break;
+				case 0x414: Opcodes[Pointer/sizeof(uint32_t)] = id_cdp;     break;
+				case 0x416: Opcodes[Pointer/sizeof(uint32_t)] = id_ncdt;    break;
+				case 0x41B: Opcodes[Pointer/sizeof(uint32_t)] = id_nccs;    break;
+				case 0x41C: Opcodes[Pointer/sizeof(uint32_t)] = id_cc;      break;
+				case 0x41E: Opcodes[Pointer/sizeof(uint32_t)] = id_ncs;     break;
+				case 0x420: Opcodes[Pointer/sizeof(uint32_t)] = id_nct;     break;
+				case 0x429: Opcodes[Pointer/sizeof(uint32_t)] = id_dpcl;    break;
+				case 0x42A: Opcodes[Pointer/sizeof(uint32_t)] = id_dpct;    break;
+				case 0x42D: Opcodes[Pointer/sizeof(uint32_t)] = id_avsz3;   break;
+				case 0x42E: Opcodes[Pointer/sizeof(uint32_t)] = id_avsz4;   break;
+				case 0x43F: Opcodes[Pointer/sizeof(uint32_t)] = id_ncct;    break;
 				}
 			}
 			break;
 		default:
 			switch (Op) {
 			case 0x01:
-				if      (Rt == 0x00) Opcodes[Pointer/sizeof(uint32)] = id_bltz   ;
-				else if (Rt == 0x01) Opcodes[Pointer/sizeof(uint32)] = id_bgez   ;
-				else if (Rt == 0x10) Opcodes[Pointer/sizeof(uint32)] = id_bltzal ;
-				else if (Rt == 0x11) Opcodes[Pointer/sizeof(uint32)] = id_bgezal ;
+				if      (Rt == 0x00) Opcodes[Pointer/sizeof(uint32_t)] = id_bltz   ;
+				else if (Rt == 0x01) Opcodes[Pointer/sizeof(uint32_t)] = id_bgez   ;
+				else if (Rt == 0x10) Opcodes[Pointer/sizeof(uint32_t)] = id_bltzal ;
+				else if (Rt == 0x11) Opcodes[Pointer/sizeof(uint32_t)] = id_bgezal ;
 				break;
-			case 0x04: Opcodes[Pointer/sizeof(uint32)] = id_beq    ; break;
-			case 0x05: Opcodes[Pointer/sizeof(uint32)] = id_bne    ; break;
-			case 0x06: Opcodes[Pointer/sizeof(uint32)] = id_blez   ; break;
-			case 0x07: Opcodes[Pointer/sizeof(uint32)] = id_bgtz   ; break;
-			case 0x08: Opcodes[Pointer/sizeof(uint32)] = id_addi   ; break;
-			case 0x09: Opcodes[Pointer/sizeof(uint32)] = id_addiu  ; break;
-			case 0x0A: Opcodes[Pointer/sizeof(uint32)] = id_slti   ; break;
-			case 0x0B: Opcodes[Pointer/sizeof(uint32)] = id_sltiu  ; break;
-			case 0x0C: Opcodes[Pointer/sizeof(uint32)] = id_andi   ; break;
-			case 0x0D: Opcodes[Pointer/sizeof(uint32)] = id_ori    ; break;
-			case 0x0E: Opcodes[Pointer/sizeof(uint32)] = id_xori   ; break;
-			case 0x0F: Opcodes[Pointer/sizeof(uint32)] = id_lui    ; break;
-			case 0x20: Opcodes[Pointer/sizeof(uint32)] = id_lb     ; break;
-			case 0x21: Opcodes[Pointer/sizeof(uint32)] = id_lh     ; break;
-			case 0x22: Opcodes[Pointer/sizeof(uint32)] = id_lwl    ; break;
-			case 0x23: Opcodes[Pointer/sizeof(uint32)] = id_lw     ; break;
-			case 0x24: Opcodes[Pointer/sizeof(uint32)] = id_lbu    ; break;
-			case 0x25: Opcodes[Pointer/sizeof(uint32)] = id_lhu    ; break;
-			case 0x26: Opcodes[Pointer/sizeof(uint32)] = id_lwr    ; break;
-			case 0x28: Opcodes[Pointer/sizeof(uint32)] = id_sb     ; break;
-			case 0x29: Opcodes[Pointer/sizeof(uint32)] = id_sh     ; break;
-			case 0x2A: Opcodes[Pointer/sizeof(uint32)] = id_swl    ; break;
-			case 0x2B: Opcodes[Pointer/sizeof(uint32)] = id_sw     ; break;
-			case 0x2E: Opcodes[Pointer/sizeof(uint32)] = id_swr    ; break;
-			case 0x32: Opcodes[Pointer/sizeof(uint32)] = id_lwc2   ; break;
-			case 0x3A: Opcodes[Pointer/sizeof(uint32)] = id_swc2   ; break;
+			case 0x04: Opcodes[Pointer/sizeof(uint32_t)] = id_beq    ; break;
+			case 0x05: Opcodes[Pointer/sizeof(uint32_t)] = id_bne    ; break;
+			case 0x06: Opcodes[Pointer/sizeof(uint32_t)] = id_blez   ; break;
+			case 0x07: Opcodes[Pointer/sizeof(uint32_t)] = id_bgtz   ; break;
+			case 0x08: Opcodes[Pointer/sizeof(uint32_t)] = id_addi   ; break;
+			case 0x09: Opcodes[Pointer/sizeof(uint32_t)] = id_addiu  ; break;
+			case 0x0A: Opcodes[Pointer/sizeof(uint32_t)] = id_slti   ; break;
+			case 0x0B: Opcodes[Pointer/sizeof(uint32_t)] = id_sltiu  ; break;
+			case 0x0C: Opcodes[Pointer/sizeof(uint32_t)] = id_andi   ; break;
+			case 0x0D: Opcodes[Pointer/sizeof(uint32_t)] = id_ori    ; break;
+			case 0x0E: Opcodes[Pointer/sizeof(uint32_t)] = id_xori   ; break;
+			case 0x0F: Opcodes[Pointer/sizeof(uint32_t)] = id_lui    ; break;
+			case 0x20: Opcodes[Pointer/sizeof(uint32_t)] = id_lb     ; break;
+			case 0x21: Opcodes[Pointer/sizeof(uint32_t)] = id_lh     ; break;
+			case 0x22: Opcodes[Pointer/sizeof(uint32_t)] = id_lwl    ; break;
+			case 0x23: Opcodes[Pointer/sizeof(uint32_t)] = id_lw     ; break;
+			case 0x24: Opcodes[Pointer/sizeof(uint32_t)] = id_lbu    ; break;
+			case 0x25: Opcodes[Pointer/sizeof(uint32_t)] = id_lhu    ; break;
+			case 0x26: Opcodes[Pointer/sizeof(uint32_t)] = id_lwr    ; break;
+			case 0x28: Opcodes[Pointer/sizeof(uint32_t)] = id_sb     ; break;
+			case 0x29: Opcodes[Pointer/sizeof(uint32_t)] = id_sh     ; break;
+			case 0x2A: Opcodes[Pointer/sizeof(uint32_t)] = id_swl    ; break;
+			case 0x2B: Opcodes[Pointer/sizeof(uint32_t)] = id_sw     ; break;
+			case 0x2E: Opcodes[Pointer/sizeof(uint32_t)] = id_swr    ; break;
+			case 0x32: Opcodes[Pointer/sizeof(uint32_t)] = id_lwc2   ; break;
+			case 0x3A: Opcodes[Pointer/sizeof(uint32_t)] = id_swc2   ; break;
 			}
 			break;
 		}
@@ -709,7 +709,7 @@ int pass3(void)
 	if (Entry < Address || Entry > Address + Binary.Size) return false;
 	Follow(Entry);
 
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		if ((Flag[Pointer] & FlagCode) != FlagCode) {
 			Flag[Pointer  ] |= FlagData;
 			Flag[Pointer+1] |= FlagData;
@@ -725,8 +725,8 @@ int Dasm(void)
 	if (!Binary.Data) return false;
 	if (!Binary.File) return false;
 	if (!Binary.Size) return false;
-	Flag = (uint32*)Binary.Copy;
-	Code = (uint32*)Binary.Data;
+	Flag = (uint32_t*)Binary.Copy;
+	Code = (uint32_t*)Binary.Data;
 
 	// multiple passes over file...
 	pass1(); // identify file format & extract loading address and entry point.
@@ -752,11 +752,11 @@ int Dasm(void)
 
 	// find jump targets...
 	if ((Entry >= Address) && (Entry <= Address+Binary.Size)) Flag[Entry-Address] |= FlagLabel;
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		if (Flag[Pointer] & FlagCode) {
 			// instruction decoding
 			Pc      = Address + Pointer + 4;
-			Opcode  = Code[Pointer/sizeof(uint32)];
+			Opcode  = Code[Pointer/sizeof(uint32_t)];
 			Op      = ((Opcode & 0xFC000000) >> 0x1A);
 			Target  = ((Opcode & 0x01FFFFFF) >> 0x00);
 			Target  = (Target << 0x02) | (Pc & 0xF0000000);
@@ -777,7 +777,7 @@ int Dasm(void)
 					Flag[Target-Address] |= FlagLabel;
 					//fprintf(Binary.File, "local 0x%08X\r\n", Target, Target);
 				} else {
-					fprintf(Binary.File, "extern 0x%08X\r\n", Target, Target);
+					fprintf(Binary.File, "extern 0x%08X\r\n", Target);
 				}
 				break;
 
@@ -786,55 +786,55 @@ int Dasm(void)
 					Flag[Label-Address] |= FlagLabel;
 					//fprintf(Binary.File, "local 0x%08X\r\n", Label, Label);
 				} else {
-					fprintf(Binary.File, "extern 0x%08X\r\n", Label, Label);
+					fprintf(Binary.File, "extern 0x%08X\r\n", Label);
 				}
 				break;
 			}
 		} else {
 			// instruction decoding
 			Pc      = Address + Pointer;
-			Opcode  = Code[Pointer/sizeof(uint32)];
+			Opcode  = Code[Pointer/sizeof(uint32_t)];
 			if ((Opcode >= Address) && (Opcode <= Address+Binary.Size)) {
 				Flag[Opcode-Address] |= FlagLabel;
 			} else if ((Opcode >= 0x80000000) && (Opcode < 0x80200000)) {
-				fprintf(Binary.File, "extern 0x%08X\r\n", Target, Target);
+				fprintf(Binary.File, "extern 0x%08X\r\n", Target);
 			}
 		}
 
 	}
 
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		if ((Flag[Pointer    ] & FlagCode) != FlagCode) continue; // if this word is an opcode
 		if ((Flag[Pointer - 4] & FlagCode) == FlagCode) continue; // and the previous word is data
 		Flag[Pointer] |= FlagLabel; // mark this location as a label
 	}
 	fprintf(Binary.File, "\r\n");
 	fprintf(Binary.File, "# local functions\r\n");
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		if ((Flag[Pointer] & FlagCode ) != FlagCode) continue;
 		if ((Flag[Pointer] & FlagLabel) != FlagLabel) continue;
 		Pc = Address + Pointer;
-		fprintf(Binary.File, "local  0x%08X\r\n", Pc, Pc);
+		fprintf(Binary.File, "local  0x%08X\r\n", Pc);
 	}
 	fprintf(Binary.File, "\r\n");
 	fprintf(Binary.File, "# local data references\r\n");
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		if ((Flag[Pointer] & FlagData ) != FlagData) continue;
 		if ((Flag[Pointer] & FlagLabel) != FlagLabel) continue;
 		Pc = Address + Pointer;
-		fprintf(Binary.File, "local  0x%08X\r\n", Pc, Pc);
+		fprintf(Binary.File, "local  0x%08X\r\n", Pc);
 	}
 	fprintf(Binary.File, "\r\n");
 
 
 	// disassembly should be performed as a series of passes
 	JrReg = false; // flag stating that we should terminate a proc
-	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32)) {
+	for (Pointer = 0; Pointer < Binary.Size; Pointer += sizeof(uint32_t)) {
 		bool TerminateProc = false;
 
 		// instruction decoding
 		Pc      = Address + Pointer + 4;
-		Opcode  = Code[Pointer/sizeof(uint32)];
+		Opcode  = Code[Pointer/sizeof(uint32_t)];
 		Op      = ((Opcode & 0xFC000000) >> 0x1A);
 		Rs      = ((Opcode & 0x03E00000) >> 0x15);
 		Format  = ((Opcode & 0x03E00000) >> 0x15);
@@ -860,42 +860,42 @@ int Dasm(void)
 			JrReg = false;
 		}
 		if (Imm == 0x00008000) {
-			sprintf_s(Number, sizeof(Number), "-0xFFFF%04X", Imm);
+			sprintf(Number, "-0xFFFF%04X", Imm);
 		} else if (Imm & 0x00008000) {
-			sprintf_s(Number, sizeof(Number), "-0x%04X", (Imm^0x0000FFFF)+1);
+			sprintf(Number, "-0x%04X", (Imm^0x0000FFFF)+1);
 		} else {
-			sprintf_s(Number, sizeof(Number), "0x%04X", Imm);
+			sprintf(Number, "0x%04X", Imm);
 		}
 
 		// disassemble Opcode
 		if (Flag[Pointer] & FlagData) {
-			uint16 Half;
-			uint8  Byte;
+			uint16_t Half;
+			uint8_t  Byte;
 			switch (Flag[Pointer] & 0x03) {
 			case FlagByte:
 				Byte = Opcode & 0x000000FF;
-				Print("byte    0x%02X", Byte, Byte);
+				Print("byte    0x%02X", Byte);
 				Byte = (Opcode & 0x0000FF00) >> 0x08;
 				Pointer += 1;
-				Print("byte    0x%02X", Byte, Byte);
+				Print("byte    0x%02X", Byte);
 				Byte = (Opcode & 0x00FF0000) >> 0x10;
 				Pointer += 1;
-				Print("byte    0x%02X", Byte, Byte);
+				Print("byte    0x%02X", Byte);
 				Byte = (Opcode & 0xFF000000) >> 0x18;
 				Pointer += 1;
-				Print("byte    0x%02X", Byte, Byte);
+				Print("byte    0x%02X", Byte);
 				Pointer -= 3;
 				break;
 			case FlagHalf:
 				Half = Opcode & 0x0000FFFF;
-				Print("half    0x%04X", Half, Half);
+				Print("half    0x%04X", Half);
 				Half = Opcode >> 0x10;
 				Pointer += 2;
-				Print("half    0x%04X", Half, Half);
+				Print("half    0x%04X", Half);
 				Pointer -= 2;
 				break;
 			default:
-				Print("word    0x%08X", Opcode, Opcode);
+				Print("word    0x%08X", Opcode);
 				break;
 			}
 		} else {

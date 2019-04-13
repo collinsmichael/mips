@@ -2,15 +2,16 @@
 #include <malloc.h>
 #include <memory.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "Lexer.h"
 #include "Symbol.h"
 
-extern char  *CpuReg[0x40];
-extern char  *GpuReg[0x60];
-extern char  *GteCReg[0x60];
-extern char  *GteDReg[0x60];
-extern char  *Mnemonic[0x60];
-extern char  *Directive[0x20];
+extern const char  *CpuReg[0x40];
+extern const char  *GpuReg[0x60];
+extern const char  *GteCReg[0x60];
+extern const char  *GteDReg[0x60];
+extern const char  *Mnemonic[0x60];
+extern const char  *Directive[0x20];
 
 static char *Text;
 static int   Length;

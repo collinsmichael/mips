@@ -22,8 +22,9 @@
 // [#] dasm
 //
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <memory.h>
 #include <malloc.h>
@@ -33,6 +34,11 @@
 #include "Parse.h"
 #include "Command.h"
 #include "Dasm.h"
+
+#ifndef WIN32
+	#include <libgen.h>
+	#define _strcmpi  strcasecmp
+#endif
 
 const int NumNamingConventions = 4;
 const char *NamingConvention[NumNamingConventions] = {
@@ -63,8 +69,8 @@ const int DisplayMnemonic = 4;
 const int DisplayAscii    = 5;
 
 extern binary Binary;
-extern uint32 Address;
-extern uint32 Entry;
+extern uint32_t Address;
+extern uint32_t Entry;
 
 bool volatile ShowAddress  = true;
 bool volatile ShowOpcode   = true;
@@ -96,10 +102,21 @@ int Open(binary *Binary, char *FilePath)
 	if (!FilePath) return false;
 
 	Close(Binary, FilePath);
-	strcpy_s(Binary->Path, sizeof(Binary->Path), FilePath);
+	strcpy(Binary->Path, FilePath);
+
+
+#ifndef WIN32
+	#define _strcmpi  strcasecmp
+	strcpy(Binary->Dir,   dirname(Binary->Path));
+	strcpy(Binary->Fname, basename(Binary->Path));
+	strcpy(Binary->Ext,   strchr(basename(Binary->Path), '.'));
+#else
 	_splitpath_s(Binary->Path, Binary->Drive, sizeof(Binary->Drive), Binary->Dir, sizeof(Binary->Dir),
 		Binary->Fname, sizeof(Binary->Fname), Binary->Ext, sizeof(Binary->Ext));
-	if (fopen_s(&Binary->File, FilePath, "rb")) {
+#endif
+
+	Binary->File = fopen(FilePath, "rb");
+	if (!Binary->File) {
 		Close(Binary, FilePath);
 		printf("error : failed to open file for reading! %s%s", Binary->Fname, Binary->Ext);
 		return false;
@@ -109,13 +126,13 @@ int Open(binary *Binary, char *FilePath)
 	Binary->Size = ftell(Binary->File);
 	fseek(Binary->File, 0, SEEK_SET);
 
-	Binary->Copy = malloc(Binary->Size*sizeof(uint32));
+	Binary->Copy = malloc(Binary->Size*sizeof(uint32_t));
 	if (!Binary->Copy) {
 		Close(Binary, FilePath);
 		printf("error : failed to allocate memory for file flags! %s%s", Binary->Fname, Binary->Ext);
 		return false;
 	}
-	memset(Binary->Copy, 0, Binary->Size*sizeof(uint32));
+	memset(Binary->Copy, 0, Binary->Size*sizeof(uint32_t));
 
 	Binary->Code = malloc(Binary->Size);
 	if (!Binary->Code) {
@@ -138,8 +155,9 @@ int Open(binary *Binary, char *FilePath)
 	}
 	fclose(Binary->File);
 
-	strcat_s(Binary->Path, sizeof(Binary->Path), ".LST");
-	if (fopen_s(&Binary->File, Binary->Path, "wb")) {
+	strcat(Binary->Path, ".LST");
+	Binary->File = fopen(Binary->Path, "wb");
+	if (!Binary->File) {
 		Close(Binary, FilePath);
 		printf("error : failed to create assembler listing file! %s%s", Binary->Fname, Binary->Ext);
 		return false;
@@ -199,7 +217,8 @@ int DoCommand(table *Table)
 		case TokenQuote:
 		case TokenWord:
 			GetTokenText(Table, CurToken+2, Buffer);
-			if (fopen_s(&File, Buffer, "rb")) {
+			File = fopen(Buffer, "rb");
+			if (!File) {
 				printf("error : failed to open command file! '%s'\n", Buffer);
 				return Length;
 			}
@@ -221,7 +240,7 @@ int DoCommand(table *Table)
 			fclose(File);
 			Data[Size] = 0;
 
-			strcpy_s(Buffer, sizeof(Buffer), "CommandFile ");
+			strcpy(Buffer, "CommandFile ");
 			GetTokenText(Table, CurToken+2, &Buffer[strlen(Buffer)]);
 			Command(Buffer, Data);
 			free(Data);
@@ -578,11 +597,11 @@ int DoEntry(table *Table)
 
 int DoCode(table *Table)
 {
-	uint32 *Byte;
-	uint32 Start, Finish;
+	uint32_t *Byte;
+	uint32_t Start, Finish;
 	int    Category, Length = 1;
 
-	Byte = (uint32*)Binary.Copy;
+	Byte = (uint32_t*)Binary.Copy;
 	if (!Byte) return Length;
 	if (Table) {
 		int CurToken = GetCurToken(Table);
@@ -608,18 +627,18 @@ int DoCode(table *Table)
 		if ((Finish < Address) || (Finish > Address+Binary.Size)) return Length;
 		Finish -= Address;
 
-		for (uint32 i = Start; i <= Finish; i++) Byte[i] |= FlagCode;
+		for (uint32_t i = Start; i <= Finish; i++) Byte[i] |= FlagCode;
 	}
 	return Length;
 }
 
 int DoData(table *Table)
 {
-	uint32 *Byte;
-	uint32 Start, Finish;
+	uint32_t *Byte;
+	uint32_t Start, Finish;
 	int    Category, Length = 1;
 
-	Byte = (uint32*)Binary.Copy;
+	Byte = (uint32_t*)Binary.Copy;
 	if (!Byte) return Length;
 	if (Table) {
 		int CurToken = GetCurToken(Table);
@@ -645,7 +664,7 @@ int DoData(table *Table)
 		if ((Finish < Address) || (Finish > Address+Binary.Size)) return Length;
 		Finish -= Address;
 
-		for (uint32 i = Start; i <= Finish; i++) Byte[i] |= FlagData;
+		for (uint32_t i = Start; i <= Finish; i++) Byte[i] |= FlagData;
 	}
 	return Length;
 }
