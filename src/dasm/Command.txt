@@ -57,7 +57,7 @@ Show
                 Opcode   - Displays the raw opcode next to the address column.
                 Label    - Displays the target of jumps and calls.
                 Mnemonic - Displays the disassembled instruction.
-                Ascii    - Hides the ascii representation of the opcode.
+                Ascii    - Displays the ascii representation of the opcode.
 
 Hide
     Syntax    : Show(Option);
